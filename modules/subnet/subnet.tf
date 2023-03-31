@@ -14,21 +14,23 @@ provider "aws" {
 ######################## RESOURCES ########################
 
 resource "aws_subnet" "new_subnet" {
-  vpc_id                  = var.vpc_id
-  cidr_block              = var.cidr_block
-  availability_zone       = var.availability_zone
-  map_public_ip_on_launch = var.public
+  for_each                = var.subnet
+  vpc_id                  = each.value["vpc"]
+  cidr_block              = each.value["cidr_block"]
+  availability_zone       = each.value["az"]
+  map_public_ip_on_launch = each.value["public"]
   tags = {
-    Name        = var.subnet_name
-    Environment = var.subnet_env
+    Name        = each.key
+    Environment = each.value["env"]
   }
 }
-/*
-# Create routing tables to route traffic for Private Subnet - PROD
-resource "aws_route_table" "prod_prv_rt" {
-  vpc_id = var.vpc_id
-  tags   = {
-    Name = "RT-"+var.subnet_name
+
+# Create routing table for each subnet
+resource "aws_route_table" "route_table" {
+  for_each = var.subnet
+  vpc_id   = each.value["vpc"]
+  tags = {
+    Name        = "RT-${each.key}"
+    Environment = each.value["env"]
   }
 }
-*/

@@ -14,31 +14,17 @@ provider "aws" {
 ######################## RESOURCES ########################
 
 resource "aws_vpc" "new_vpc" {
-  cidr_block           = var.cidr_block
-  enable_dns_hostnames = var.dns_hostnames
+  for_each             = var.vpc
+  cidr_block           = each.value["cidr_block"]
+  enable_dns_hostnames = each.value["dns"]
   tags = {
-    Name        = var.vpc_name
-    Environment = var.vpc_environment
+    Name        = "VPC-${each.key}"
+    Environment = each.value["env"]
   }
 }
 
 /*
-
-# Internet Gateway for Public Subnet 
-resource "aws_internet_gateway" "prod_igw" {
-  vpc_id = aws_vpc.prod_vpc.id
-  tags   = var.prod_igw_tags
-}
-
-
 # Create PUBLIC subnet 
-resource "aws_subnet" "prod_pub_subnet_A" {
-  vpc_id                  = aws_vpc.prod_vpc.id
-  cidr_block              = var.cidr_blocks["prod-pub-cidr-A"]
-  availability_zone       = var.AZ-names["pub-az-A"]
-  map_public_ip_on_launch = true
-  tags                    = var.prod_pub_subnet_A_tags
-}
 
 # Elastic-IP (eip) for NAT - PROD
 resource "aws_eip" "prod_nat_eip" {

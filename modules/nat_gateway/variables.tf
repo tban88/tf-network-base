@@ -3,10 +3,9 @@ variable "region" {
   default = "us-east-1"
 }
 
-variable "vpc" {
+variable "nat" {
   type = map(object({
-    cidr_block = string
-    env        = string
-    dns        = bool
+    subnet = string
+    env    = string
   }))
 }
