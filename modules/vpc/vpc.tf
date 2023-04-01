@@ -24,73 +24,7 @@ resource "aws_vpc" "new_vpc" {
 }
 
 /*
-# Create PUBLIC subnet 
 
-# Elastic-IP (eip) for NAT - PROD
-resource "aws_eip" "prod_nat_eip" {
-  vpc        = true
-  depends_on = [aws_internet_gateway.prod_igw]
-  tags       = var.prod_eip_tags
-}
-
-# Create NAT - PROD
-resource "aws_nat_gateway" "prod_nat" {
-  allocation_id = aws_eip.prod_nat_eip.id
-  subnet_id     = aws_subnet.prod_pub_subnet_A.id
-  tags          = var.prod_nat_tags
-}
-
-# Create routing tables to route traffic for Private Subnet - PROD
-resource "aws_route_table" "prod_prv_rt" {
-  vpc_id = aws_vpc.prod_vpc.id
-  tags   = var.prod_prv_rt_tags
-}
-
-# Create routing tables to route traffic for Public Subnet - PROD
-resource "aws_route_table" "prod_pub_rt" {
-  vpc_id = aws_vpc.prod_vpc.id
-  tags   = var.prod_pub_rt_tags
-}
-
-# Create route for Internet Gateway - PROD
-resource "aws_route" "prod_pub_igw_rt" {
-  route_table_id         = aws_route_table.prod_pub_rt.id
-  destination_cidr_block = var.cidr_blocks["all-ipv4"]
-  gateway_id             = aws_internet_gateway.prod_igw.id
-}
-
-# Create route for NAT - PROD
-resource "aws_route" "prod_prv_nat_gateway" {
-  route_table_id         = aws_route_table.prod_prv_rt.id
-  destination_cidr_block = var.cidr_blocks["all-ipv4"]
-  nat_gateway_id         = aws_nat_gateway.prod_nat.id
-}
-
-# Route table associations for both Public & Private Subnets - PROD
-
-# PUB-RT association with PUB-A
-resource "aws_route_table_association" "prod_pub_rt_asoc_A" {
-  subnet_id      = aws_subnet.prod_pub_subnet_A.id
-  route_table_id = aws_route_table.prod_pub_rt.id
-}
-
-# PUB-RT association with PUB-B
-resource "aws_route_table_association" "prod_pub_rt_asoc_B" {
-  subnet_id      = aws_subnet.prod_pub_subnet_B.id
-  route_table_id = aws_route_table.prod_pub_rt.id
-}
-
-# PRV-RT association with PRV-A
-resource "aws_route_table_association" "prod_prv_rt_asoc_A" {
-  subnet_id      = aws_subnet.prod_prv_subnet_A.id
-  route_table_id = aws_route_table.prod_prv_rt.id
-}
-
-# PRV-RT association with PRV-B
-resource "aws_route_table_association" "prod_prv_rt_asoc_B" {
-  subnet_id      = aws_subnet.prod_prv_subnet_B.id
-  route_table_id = aws_route_table.prod_prv_rt.id
-}
 
 # Default Security Group of VPC
 resource "aws_security_group" "prod_default_sg" {

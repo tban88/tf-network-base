@@ -6,78 +6,11 @@ provider "aws" {
   region = var.main_region
 }
 
-locals {
-  vpc = {
-    PROD    = { cidr_block = "10.10.0.0/16", env = "PROD", dns = true },
-    NONPROD = { cidr_block = "10.20.0.0/16", env = "NONPROD", dns = false },
-  }
-
-  subnet = {
-    PROD-PRIV-SN-1    = { cidr_block = "10.10.0.0/22", vpc = module.vpc.vpc_id["PROD"], env = "PROD", az = "us-east-1a", public = false },
-    PROD-PRIV-SN-2    = { cidr_block = "10.10.4.0/22", vpc = module.vpc.vpc_id["PROD"], env = "PROD", az = "us-east-1b", public = false },
-    PROD-PUB-SN-1     = { cidr_block = "10.10.8.0/22", vpc = module.vpc.vpc_id["PROD"], env = "PROD", az = "us-east-1a", public = true },
-    PROD-PUB-SN-2     = { cidr_block = "10.10.12.0/22", vpc = module.vpc.vpc_id["PROD"], env = "PROD", az = "us-east-1b", public = true },
-    NONPROD-PRIV-SN-1 = { cidr_block = "10.20.0.0/22", vpc = module.vpc.vpc_id["NONPROD"], env = "NONPROD", az = "us-east-1a", public = false },
-    NONPROD-PRIV-SN-2 = { cidr_block = "10.20.4.0/22", vpc = module.vpc.vpc_id["NONPROD"], env = "NONPROD", az = "us-east-1b", public = false },
-    NONPROD-PUB-SN-1  = { cidr_block = "10.20.8.0/22", vpc = module.vpc.vpc_id["NONPROD"], env = "NONPROD", az = "us-east-1a", public = true },
-    NONPROD-PUB-SN-2  = { cidr_block = "10.20.12.0/22", vpc = module.vpc.vpc_id["NONPROD"], env = "NONPROD", az = "us-east-1b", public = true }
-  }
-
-  nat = {
-    PROD    = { subnet = module.subnet.subnet_id["PROD-PUB-SN-1"].subnet_id, env = "PROD" },
-    NONPROD = { subnet = module.subnet.subnet_id["PROD-PUB-SN-1"].subnet_id, env = "NONPROD" }
-  }
-}
-
-module "vpc" {
-  source = "./modules/vpc"
-  vpc    = local.vpc
-}
-
-module "subnet" {
-  source = "./modules/subnet"
-  subnet = local.subnet
-}
-
-module "igw" {
-  source = "./modules/internet_gateway"
-    igw = {
-    PROD    = { vpc = module.vpc.vpc_id["PROD"].vpc_id, env = "PROD" },
-    NONPROD = { vpc = module.vpc.vpc_id["NONPROD"].vpc_id, env = "NONPROD" }
-  }
-}
-
-module "nat" {
-  source = "./modules/nat_gateway"
-  nat    = local.nat
+module "infra_baseline" {
+  source = "./modules/infra_baseline"
 }
 
 /*
-module "prod_pub_sn_1" {
-  source            = "./modules/subnet"
-  vpc_id            = module.prod_vpc.vpc_id
-  cidr_block        = "10.10.8.0/22"
-  availability_zone = "us-east-1a"
-  public            = true
-  subnet_name       = "PROD-PUB-SN-1"
-  subnet_env        = "PROD"
-}
-
-module "prod_prv_sn_1" {
-  source            = "./modules/subnet"
-  vpc_id            = module.prod_vpc.vpc_id
-  cidr_block        = "10.10.0.0/22"
-  availability_zone = "us-east-1b"
-  public            = false
-  subnet_name       = "PROD-PRV-SN-1"
-  subnet_env        = "PROD"
-}
-*/
-/*
-module "nonprod_vpc" {
-  source = "./modules/vpc"
-}
-
 module "prod_sg" {
   source      = "./modules/security_group"
   name        = "TEST-SG"

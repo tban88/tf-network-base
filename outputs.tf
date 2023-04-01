@@ -1,5 +1,5 @@
 ######################## DATA: VPC ########################
-
+/*
 output "VPC-IDs" {
   value = module.vpc.vpc_id
 }
@@ -19,3 +19,4 @@ output "EIP-IDs" {
 output "NAT-IDs" {
   value = module.nat.nat_id
 }
+*/
