@@ -18,7 +18,7 @@ variable "vpc" {
     "NONPROD" = {
       cidr_block = "10.20.0.0/16"
       dns        = true
-      env        = "PROD"
+      env        = "NONPROD"
     }
   }
 }
@@ -149,4 +149,3 @@ variable "nat" {
     }
   }
 }
-

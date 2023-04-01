@@ -13,6 +13,29 @@ provider "aws" {
 
 ######################## RESOURCES ########################
 
+locals {
+  ingress_rules = [{
+    port        = 443
+    description = "HTTPS Access"
+    protocol    = "tcp"
+    },
+    {
+      port        = 22
+      description = "SSH Access"
+      protocol    = "tcp"
+    },
+    {
+      port        = 80
+      description = "HTTP Access"
+      protocol    = "tcp"
+    },
+    {
+      port        = 8080
+      description = "JENKINS Access"
+      protocol    = "tcp"
+  }]
+}
+
 resource "aws_vpc" "new_vpc" {
   for_each             = var.vpc
   cidr_block           = each.value["cidr_block"]
@@ -98,15 +121,11 @@ resource "aws_route_table_association" "pub_route_asoc" {
   route_table_id = aws_route_table.route_table["${each.key}"].id
 }
 
-/*
-# Default Security Group of VPC
-resource "aws_security_group" "prod_default_sg" {
-  name        = "PROD-DEFAULT-SG"
+resource "aws_security_group" "default_sg" {
+  for_each    = var.vpc
+  name        = "SG-DEFAULT-${each.value["env"]}"
   description = "Allows basic inbound connectivity via HTTP(s) and SSH"
-  vpc_id      = aws_vpc.prod_vpc.id
-  depends_on = [
-    aws_vpc.prod_vpc
-  ]
+  vpc_id      = aws_vpc.new_vpc["${each.key}"].id
 
   dynamic "ingress" {
     for_each = local.ingress_rules
@@ -120,7 +139,7 @@ resource "aws_security_group" "prod_default_sg" {
       cidr_blocks = ["0.0.0.0/0"]
     }
   }
-  
+
   egress {
     from_port        = 0
     to_port          = 0
@@ -128,43 +147,17 @@ resource "aws_security_group" "prod_default_sg" {
     cidr_blocks      = ["0.0.0.0/0"]
     ipv6_cidr_blocks = ["::/0"]
   }
-  tags = var.prod_df_sg_tags
-}
-
-# Blank Security Group for PROD VPC
-resource "aws_security_group" "prod_blank_sg" {
-  name        = "PROD-BLANK-SG"
-  description = "Used for SSM Instances - No KeyPairs Needed"
-  vpc_id      = aws_vpc.prod_vpc.id
-  depends_on = [
-    aws_vpc.prod_vpc
-  ]
-}
-
-######################## RESOURCES: NONPROD ########################
-
-# Default Security Group for NONPROD VPC
-resource "aws_security_group" "nonprod_default_sg" {
-  name        = "NONPROD-DEFAULT-SG"
-  description = "Allows basic inbound connectivity via HTTP(s) and SSH"
-  vpc_id      = aws_vpc.nonprod_vpc.id
-  depends_on = [
-    aws_vpc.nonprod_vpc
-  ]
-
-  dynamic "ingress" {
-    for_each = local.ingress_rules
-    iterator = rule
-
-    content {
-      description = rule.value.description
-      from_port   = rule.value.port
-      to_port     = rule.value.port
-      protocol    = rule.value.protocol
-      cidr_blocks = ["0.0.0.0/0"]
-    }
+  tags = {
+    Name        = "SG-DEFAULT-${each.value["env"]}"
+    Environment = each.value["env"]
   }
- 
+}
+
+resource "aws_security_group" "blank_sg" {
+  for_each    = var.vpc
+  name        = "SG-BLANK-${each.value["env"]}"
+  description = "Used for SSM Instances - No KeyPairs Needed"
+  vpc_id      = aws_vpc.new_vpc["${each.key}"].id
   egress {
     from_port        = 0
     to_port          = 0
@@ -172,16 +165,8 @@ resource "aws_security_group" "nonprod_default_sg" {
     cidr_blocks      = ["0.0.0.0/0"]
     ipv6_cidr_blocks = ["::/0"]
   }
-  tags = var.nonprod_df_sg_tags
+  tags = {
+    Name        = "SG- BLANK-${each.value["env"]}"
+    Environment = each.value["env"]
+  }
 }
-
-# Blank Security Group for NONPROD VPC
-resource "aws_security_group" "nonprod_blank_sg" {
-  name        = "NONPROD-BLANK-SG"
-  description = "Used for SSM Instances - No KeyPairs Needed"
-  vpc_id      = aws_vpc.nonprod_vpc.id
-  depends_on = [
-    aws_vpc.nonprod_vpc
-  ]
-}
-*/
