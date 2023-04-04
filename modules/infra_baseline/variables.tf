@@ -23,7 +23,7 @@ variable "vpc" {
   }
 }
 
-variable "subnet" {
+variable "priv_subnet" {
   type = map(object({
     cidr_block = string
     env        = string
@@ -43,6 +43,29 @@ variable "subnet" {
       env        = "PROD"
       public     = false
     },
+    "NONPROD-PRIV-SN-1" = {
+      az         = "us-east-1a"
+      cidr_block = "10.20.0.0/22"
+      env        = "NONPROD"
+      public     = false
+    },
+    "NONPROD-PRIV-SN-2" = {
+      az         = "us-east-1b"
+      cidr_block = "10.20.4.0/22"
+      env        = "NONPROD"
+      public     = false
+    }
+  }
+}
+
+variable "pub_subnet" {
+  type = map(object({
+    cidr_block = string
+    env        = string
+    az         = string
+    public     = bool
+  }))
+  default = {
     "PROD-PUB-SN-1" = {
       az         = "us-east-1a"
       cidr_block = "10.10.8.0/22"
@@ -55,18 +78,6 @@ variable "subnet" {
       env        = "PROD"
       public     = true
     },
-    "NONPROD-PRIV-SN-1" = {
-      az         = "us-east-1a"
-      cidr_block = "10.20.0.0/22"
-      env        = "NONPROD"
-      public     = false
-    },
-    "NONPROD-PRIV-SN-2" = {
-      az         = "us-east-1b"
-      cidr_block = "10.20.4.0/22"
-      env        = "NONPROD"
-      public     = false
-    },
     "NONPROD-PUB-SN-1" = {
       az         = "us-east-1a"
       cidr_block = "10.20.8.0/22"
@@ -78,46 +89,6 @@ variable "subnet" {
       cidr_block = "10.20.12.0/22"
       env        = "NONPROD"
       public     = true
-    }
-  }
-}
-
-variable "priv_subnet" {
-  type = map(object({
-    env = string
-  }))
-  default = {
-    "PROD-PRIV-SN-1" = {
-      env = "PROD"
-    },
-    "PROD-PRIV-SN-2" = {
-      env = "PROD"
-    },
-    "NONPROD-PRIV-SN-1" = {
-      env = "NONPROD"
-    },
-    "NONPROD-PRIV-SN-2" = {
-      env = "NONPROD"
-    }
-  }
-}
-
-variable "pub_subnet" {
-  type = map(object({
-    env = string
-  }))
-  default = {
-    "PROD-PUB-SN-1" = {
-      env = "PROD"
-    },
-    "PROD-PUB-SN-2" = {
-      env = "PROD"
-    },
-    "NONPROD-PUB-SN-1" = {
-      env = "NONPROD"
-    },
-    "NONPROD-PUB-SN-2" = {
-      env = "NONPROD"
     }
   }
 }
@@ -146,6 +117,44 @@ variable "nat" {
     },
     "NONPROD" = {
       env = "NONPROD"
+    }
+  }
+}
+
+variable "target_group" {
+  type = map(object({
+    name            = string
+    port            = number
+    protocol        = string
+    delay           = number
+    target_type     = string
+    health_port     = number
+    health_protocol = string
+    health_path     = string
+    env             = string
+  }))
+  default = {
+    "PROD-PUB" = {
+      delay           = 10
+      name            = "PROD-PUB-TG-DEVOPS"
+      port            = 80
+      protocol        = "HTTP"
+      target_type     = "instance"
+      health_port     = 80
+      health_protocol = "HTTP"
+      health_path     = "/"
+      env             = "PROD"
+    },
+    "PROD-PRIV" = {
+      delay           = 10
+      name            = "PROD-PRIV-TG-DEVOPS"
+      port            = 80
+      protocol        = "HTTP"
+      target_type     = "instance"
+      health_port     = 80
+      health_protocol = "HTTP"
+      health_path     = "/"
+      env             = "PROD"
     }
   }
 }
