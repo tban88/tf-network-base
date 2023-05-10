@@ -33,7 +33,7 @@ locals {
       port        = 8080
       description = "JENKINS Access"
       protocol    = "tcp"
-  },
+    },
     {
       port        = 943
       description = "VPN Admin Access"
@@ -60,6 +60,8 @@ resource "aws_subnet" "priv_subnet" {
   tags = {
     Name        = each.key
     Environment = each.value["env"]
+    "kubernetes.io/cluster/voting-app" = "owned"
+    "kubernetes.io/role/internal-elb" = 1
   }
 }
 
@@ -72,6 +74,8 @@ resource "aws_subnet" "pub_subnet" {
   tags = {
     Name        = each.key
     Environment = each.value["env"]
+    "kubernetes.io/cluster/voting-app" = "owned"
+    "kubernetes.io/role/elb" = 1
   }
 }
 
